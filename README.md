@@ -1,7 +1,7 @@
 # anp-web-service
 Web service that serves as an API for collecting ANP's data
 
-API that provides Fuel price and other info from ANP's website (http://www.anp.gov.br/preco/prc/Resumo_Por_Estado_Municipio.asp)
+API that provides Fuel price and other info from ANP's website (http://www.anp.gov.br/preco/prc/Resumo_Por_Estado_Index.asp)
 
 # Installation
 
