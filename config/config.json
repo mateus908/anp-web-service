@@ -1,22 +1,22 @@
 {
   "development": {
-    "username": "user",
-    "password": "pass",
-    "database": "db_name",
+    "username": "postgres",
+    "password": "mateus150293",
+    "database": "anp",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },
   "test": {
-    "username": "user",
-    "password": "pass",
-    "database": "db_name",
+    "username": "postgres",
+    "password": "mateus150293",
+    "database": "anp",
     "host": "127.0.0.1",
     "dialect": "postgres"
   },
   "production": {
-    "username": "user",
-    "password": "pass",
-    "database": "db_name",
+    "username": "postgres",
+    "password": "mateus150293",
+    "database": "anp",
     "host": "127.0.0.1",
     "dialect": "postgres"
   }
