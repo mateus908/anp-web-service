@@ -14,6 +14,9 @@ $ npm install
 $ npm start
 
 4. Routes:
-Welcome page: 'localhost:3000/api/v1/'
-Fuel prices API: 'localhost:3000/api/v1/prices'
-Web scrap the ANP's website and save on DB: 'localhost:3000/api/v1/prices'
+
+Welcome page: 'localhost:3005/api/v1/'
+
+Fuel prices API: 'localhost:3005/api/v1/prices'
+
+Web scrap the ANP's website and save on DB: 'localhost:3005/api/v1/prices'

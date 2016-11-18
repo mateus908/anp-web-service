@@ -5,7 +5,7 @@ var router = express.Router();
 var models = require('../models');
 
 //-----------------------------------------------------------------------------
-// Array with States and Fuel names
+// Arrays with States and Fuel names
 //-----------------------------------------------------------------------------
 
   var stateNames = new Array(
@@ -32,11 +32,16 @@ var models = require('../models');
 // API Implementation
 //-----------------------------------------------------------------------------
 
+// Enable CORS
+router.use(function(req, res, next) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  next();
+});
+
 // GET prices listing
 router.get('/', function(req, res, next) {
-  var states = new Array();
-
-  var statistics = new Array();
+  var anp_info = new Array();
 
   var statistic = {
     fueltype: '',
@@ -55,37 +60,43 @@ router.get('/', function(req, res, next) {
     }
   }
 
-  var state = models.State.findAll({
-    attributes: ['name']
+  models.State.findAll({
+    attributes: ['id', 'name', 'date_from', 'date_to']
   }).then(function(states){
-    //res.json(states);
+    states.forEach(function(state){
+      var currentState = {
+        name: state.name,
+        cities: [],
+        dates: {
+          date_from: state.date_from.getDate(),
+          date_to: state.date_to.getDate()
+        }
+      };
+
+      //console.log('Estado atual: ' + state.name)
+
+      state.getCities({ attributes: ['name'] }).then(function(associatedCities) {
+        // associatedTasks is an array of tasks
+        associatedCities.forEach(function(city) {
+          currentCity = {
+            name: city.name,
+            statistics: []
+          };
+          currentState.cities.push(currentCity);
+          //console.log('Cidade atual: ' + city.name);
+        })
+      });
+
+      anp_info.push(currentState);
+    })
   });
+
+  res.json(anp_info);
+  //res.json([{id:1, message:'Eita'}, {id: 0, message: 'Deu Certo!'}]);
 });
 
 // Web Scraper
 router.get('/web-scraper', function(req, res, next) {
-  //var states = new Array();
-
-  var stateNames = new Array(
-    "Acre", "Alagoas", "Amapa", "Amazonas", "Bahia", "Ceara", "Distrito Federal",
-    "Espirito Santo", "Goias", "Maranhao", "Mato Grosso", "Mato Grosso Do Sul",
-    "Minas Gerais", "Para", "Paraiba", "Parana", "Pernambuco", "Piaui", "Rio De Janeiro",
-    "Rio Grande Do Norte", "Rio Grande Do Sul", "Rondonia", "Roraima", "Santa Catarina",
-    "Sao Paulo", "Sergipe", "Tocantins"
-  );
-
-  var stateSelection = new Array(
-    "AC*ACRE", "AL*ALAGOAS", "AP*AMAPA", "AM*AMAZONAS", "BA*BAHIA", "CE*CEARA", "DF*DISTRITO@FEDERAL",
-    "ES*ESPIRITO@SANTO", "GO*GOIAS", "MA*MARANHAO", "MT*MATO@GROSSO", "MS*MATO@GROSSO@DO@SUL",
-    "MG*MINAS@GERAIS", "PA*PARA", "PB*PARAIBA", "PR*PARANA", "PE*PERNAMBUCO", "PI*PIAUI", "RJ*RIO@DE@JANEIRO",
-    "RN*RIO@GRANDE@DO@NORTE", "RS*RIO@GRANDE@DO@SUL", "RO*RONDONIA", "RR*RORAIMA", "SC*SANTA@CATARINA",
-    "SP*SAO@PAULO", "SE*SERGIPE", "TO*TOCANTINS"
-  );
-
-  var fuelNames = new Array("Gasolina", "Etanol", "GNV", "Diesel", "Diesel S10", "GLP");
-
-  var fuelSelection = new Array("487*Gasolina", "643*Etanol", "476*GNV", "532*Diesel", "812*Diesel@S10", "462*GLP");
-
   var currentState;
   // search for attributes
   models.State.findOne({ where: {name: 'Acre'} }).then(function(state) {
@@ -128,30 +139,10 @@ router.get('/web-scraper', function(req, res, next) {
     if (error) throw new Error(error);
     var $ = cheerio.load(body);
 
-    // Define the variables we're going to capture
-    /*
-    var cities = new Array();
-
-    var state = {
-      state_name : "Acre",
-      cities : [],
-      dates : {
-        from: "2016-11-06",
-        to: "2016-11-12"
-      }
-    };
-    */
-
     $('.lincol').filter(function(){
       var data = $(this);
 
       data.parent().prev().nextAll().each(function() {
-        /*
-        var city = {
-          name: "",
-          statistics: {}
-        }
-        */
 
         var city_name = $(this).children().first().children().first().text();
         var tdElem = $(this).children().first().next().next();
@@ -217,21 +208,9 @@ router.get('/web-scraper', function(req, res, next) {
             console.log(created);
           });
         });
-        
-        //city.name = $(this).children().first().children().first().text();
-
-        /*
-        city.statistics = statistic;
-        console.log(JSON.stringify(city));
-        cities.push(city);
-        */
       })
     });
-
-    /*
-    state.cities = cities;
-    states.push(state);
-    res.json(states);*/
+    
     res.json({status: 'OK'});
   });
 });
