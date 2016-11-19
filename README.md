@@ -1,7 +1,5 @@
 # anp-web-service
-Web service that serves as an API for collecting ANP's data
-
-API that provides Fuel price and other info from ANP's website (http://www.anp.gov.br/preco/prc/Resumo_Por_Estado_Index.asp)
+Web service that collects data from ANP Website and provides it as an API (http://www.anp.gov.br/preco/prc/Resumo_Por_Estado_Index.asp)
 
 # Installation
 
@@ -19,4 +17,4 @@ Welcome page: 'localhost:3005/api/v1/'
 
 Fuel prices API: 'localhost:3005/api/v1/prices'
 
-Web scrap the ANP's website and save on DB: 'localhost:3005/api/v1/prices'
+Web scrap the ANP's website and save on DB: 'localhost:3005/api/v1/prices/web-scraper'
