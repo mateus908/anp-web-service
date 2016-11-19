@@ -41,39 +41,22 @@ router.use(function(req, res, next) {
 
 // GET prices listing
 router.get('/', function(req, res, next) {
-  var anp_info = new Array();
-
-  var statistic = {
-    fueltype: '',
-    consumer_price: {
-      cp_avgPrice: 0.0,
-      cp_stdDeviation: 0.0,
-      cp_minPrice: 0.0,
-      cp_maxPrice: 0.0,
-      cp_avgMargin: 0.0
-    },
-    distribution_price: {
-      dp_avgPrice: 0.0,
-      dp_stdDeviation: 0.0,
-      dp_minPrice: 0.0,
-      dp_maxPrice: 0.0
-    }
-  }
-
+  /*
   models.State.findAll({
     attributes: ['id', 'name', 'date_from', 'date_to']
   }).then(function(states){
+    var anp_info = new Array();
+
     states.forEach(function(state){
       var currentState = {
         name: state.name,
         cities: [],
         dates: {
+          // Wrong date format
           date_from: state.date_from.getDate(),
           date_to: state.date_to.getDate()
         }
       };
-
-      //console.log('Estado atual: ' + state.name)
 
       state.getCities({ attributes: ['name'] }).then(function(associatedCities) {
         // associatedTasks is an array of tasks
@@ -89,10 +72,69 @@ router.get('/', function(req, res, next) {
 
       anp_info.push(currentState);
     })
-  });
 
-  res.json(anp_info);
-  //res.json([{id:1, message:'Eita'}, {id: 0, message: 'Deu Certo!'}]);
+    res.json(anp_info);
+  });
+  */
+
+  models.State.findAll({
+    include: [{
+        model: models.City, attributes: ['name'], include: [{
+          model: models.Statistic, include: [{
+            model: models.FuelType
+          }]
+        }]
+    }]
+  }).then(function(states) {
+    //console.log(JSON.stringify(states));
+    var anp_info = new Array();
+
+    states.forEach(function(state) {
+      var currentState = {
+        name: state.name,
+        cities: [],
+        dates: {
+          date_from: state.date_from.getDate(), // Wrong date format
+          date_to: state.date_to.getDate()      // Wrong date format
+        }
+      };
+
+      state.Cities.forEach(function(city) {
+        currentCity = {
+            name: city.name,
+            statistics: [],
+            stations: []
+        };
+
+        city.Statistics.forEach(function(statistic) {
+          var currentStatistic = {
+            fueltype: statistic.FuelType.name,
+            consumer_price: {
+              cp_avgPrice: statistic.cp_avgPrice,
+              cp_stdDeviation: statistic.cp_stdDeviation,
+              cp_minPrice: statistic.cp_minPrice,
+              cp_maxPrice: statistic.cp_maxPrice,
+              cp_avgMargin: statistic.cp_avgMargin
+            },
+            distribution_price: {
+              dp_avgPrice: statistic.dp_avgPrice,
+              dp_stdDeviation: statistic.dp_stdDeviation,
+              dp_minPrice: statistic.dp_minPrice,
+              dp_maxPrice: statistic.dp_maxPrice
+            }
+          }
+
+          currentCity.statistics.push(currentStatistic);
+        });
+
+        currentState.cities.push(currentCity);
+      });
+
+      anp_info.push(currentState);
+    });
+    
+    res.json(anp_info);
+  })
 });
 
 // Web Scraper
@@ -210,7 +252,7 @@ router.get('/web-scraper', function(req, res, next) {
         });
       })
     });
-    
+
     res.json({status: 'OK'});
   });
 });
