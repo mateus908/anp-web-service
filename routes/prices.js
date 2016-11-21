@@ -41,42 +41,6 @@ router.use(function(req, res, next) {
 
 // GET prices listing
 router.get('/', function(req, res, next) {
-  /*
-  models.State.findAll({
-    attributes: ['id', 'name', 'date_from', 'date_to']
-  }).then(function(states){
-    var anp_info = new Array();
-
-    states.forEach(function(state){
-      var currentState = {
-        name: state.name,
-        cities: [],
-        dates: {
-          // Wrong date format
-          date_from: state.date_from.getDate(),
-          date_to: state.date_to.getDate()
-        }
-      };
-
-      state.getCities({ attributes: ['name'] }).then(function(associatedCities) {
-        // associatedTasks is an array of tasks
-        associatedCities.forEach(function(city) {
-          currentCity = {
-            name: city.name,
-            statistics: []
-          };
-          currentState.cities.push(currentCity);
-          //console.log('Cidade atual: ' + city.name);
-        })
-      });
-
-      anp_info.push(currentState);
-    })
-
-    res.json(anp_info);
-  });
-  */
-
   models.State.findAll({
     include: [{
         model: models.City, attributes: ['name'], include: [{
@@ -164,16 +128,14 @@ router.get('/web-scraper', function(req, res, next) {
     method: 'POST',
     url: 'http://www.anp.gov.br/preco/prc/Resumo_Por_Estado_Municipio.asp',
     headers: {
-      'postman-token': '7a575b04-03c4-ca8c-fea1-90da9b9abe90',
+      'postman-token': '1aa745e8-9d05-2421-e1fe-db7c3f3e2e52',
       'cache-control': 'no-cache',
       'content-type': 'application/x-www-form-urlencoded'
     },
     form: {
-      selSemana: '908*De 06/11/2016 a 12/11/2016',
-      desc_Semana: 'de 06/11/2016 a 12/11/2016',
-      cod_Semana: '908',
+      selSemana: '909*De 13/11/2016 a 19/11/2016',
       selEstado: 'AC*ACRE',
-      selCombustivel: '487*Gasolina' 
+      selCombustivel: '487*Gasolina'
     }
   };
   
@@ -189,10 +151,16 @@ router.get('/web-scraper', function(req, res, next) {
         var city_name = $(this).children().first().children().first().text();
         var tdElem = $(this).children().first().next().next();
 
+        var cod_city = $(this).children().first().children().first().attr("href");
+        var patt = new RegExp(/\d+\*(\w\@|\w)+/);
+        cod_city = patt.exec(cod_city)[0];
+        console.log(cod_city);
+
+        // Scrap Cities info from ANP
         models.City
         .findOrCreate({where: {name: city_name, state_pk: currentState.id}})
         .spread(function(city, created) {
-          console.log(created);
+          //console.log(created);
           console.log(city.id);
           console.log(city.name);
 
@@ -228,7 +196,6 @@ router.get('/web-scraper', function(req, res, next) {
           distribution_price.dp_minPrice = parseFloat(tdElem.text().replace(',', '.'));
           tdElem = tdElem.next();
           distribution_price.dp_maxPrice = parseFloat(tdElem.text().replace(',', '.'));
-          tdElem = tdElem.next();
 
           models.Statistic
           .findOrCreate({where: {
@@ -248,6 +215,99 @@ router.get('/web-scraper', function(req, res, next) {
           }})
           .spread(function(statistic, created) {
             console.log(created);
+          });
+
+          // Scrap Stations info from ANP
+          var options_station = {
+            method: 'POST',
+            url: 'http://www.anp.gov.br/preco/prc/Resumo_Semanal_Posto.asp',
+            headers: {
+              'postman-token': 'ee751e0c-d005-852a-9a6d-0dcaab1f18ce',
+              'cache-control': 'no-cache',
+              'content-type': 'application/x-www-form-urlencoded'
+              },
+            form: {
+              cod_Semana: '909',
+              cod_combustivel: '487',
+              selMunicipio: cod_city
+            }
+          };
+
+          request(options_station, function (error_station, response_station, body_station) {
+            if (error_station) throw new Error(error_station);
+            var $b_station = cheerio.load(body_station);
+
+            $b_station('#postos_nota_fiscal').filter(function(){
+              var data_station = $(this);
+
+              data_station.children().first().children().first().children().first().nextAll().each(function() {
+                var station_price = {
+                  name: '',
+                  address: '',
+                  area: '',
+                  flag: '',
+                  sellPrice: 0.0,
+                  buyPrice: 0.0,
+                  saleMode: '',
+                  provider: '',
+                  date: '2016-11-21'
+                };
+                var tdElem_station = $(this).children().first();
+
+                station_price.name = tdElem_station.text();
+                tdElem_station = tdElem_station.next();
+
+                station_price.address = tdElem_station.text();
+                tdElem_station = tdElem_station.next();
+
+                station_price.area = tdElem_station.children().first().text();
+                tdElem_station = tdElem_station.next();
+
+                station_price.flag = tdElem_station.text();
+                tdElem_station = tdElem_station.next();
+
+                station_price.sellPrice = parseFloat(tdElem_station.text().replace(',', '.'));
+                tdElem_station = tdElem_station.next();
+
+                station_price.buyPrice = parseFloat(tdElem_station.text().replace(',', '.'));
+                tdElem_station = tdElem_station.next();
+
+                station_price.saleMode = tdElem_station.text();
+                tdElem_station = tdElem_station.next();
+
+                station_price.provider = tdElem_station.text();
+                tdElem_station = tdElem_station.next();
+
+                //station_price.date = tdElem_station.text();
+
+                models.Station
+                .findOrCreate({where: {
+                  name: station_price.name, city_pk: city.id
+                }, defaults: {
+                  name: station_price.name,
+                  address: station_price.address,
+                  area: station_price.area,
+                  flag: station_price.flag
+                }})
+                .spread(function(station, created) {
+                  console.log(created);
+
+                  models.StationPrice
+                  .findOrCreate({where: {
+                    station_pk: station.id, fuel_type_pk: currentFuel.id
+                  }, defaults: {
+                    sellPrice: station_price.sellPrice,
+                    buyPrice: station_price.buyPrice,
+                    saleMode: station_price.saleMode,
+                    provider: station_price.provider,
+                    date: station_price.date
+                  }})
+                  .spread(function(stationPrice, created) {
+                    console.log(created);
+                  });
+                });
+              });
+            });
           });
         });
       })
