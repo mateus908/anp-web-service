@@ -9,9 +9,9 @@ Web service that collects data from ANP Website and provides it as an API (http:
 2. On 'config/config.json', set the Database info
 
 3. Setup the databse with migrations and seeders:
-  Create all the necessary tables on the DB: `./node_modules/.bin/sequelize db:migrate`
-  Fill the 'states' table with basic info: `./node_modules/.bin/sequelize db:seed --seed seeders/20161115013456-StateSeeder.js`
-  Fill the 'states' table with basic info: `./node_modules/.bin/sequelize db:seed --seed seeders/20161114181126-FuelTypeSeeder.js`
+Create all the necessary tables on the DB: `./node_modules/.bin/sequelize db:migrate`
+Fill the 'states' table with basic info: `./node_modules/.bin/sequelize db:seed --seed seeders/20161115013456-StateSeeder.js`
+Fill the 'states' table with basic info: `./node_modules/.bin/sequelize db:seed --seed seeders/20161114181126-FuelTypeSeeder.js`
 
 3. Put the web service up
 `$ npm start`
