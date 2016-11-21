@@ -47,6 +47,10 @@ router.get('/', function(req, res, next) {
           model: models.Statistic, include: [{
             model: models.FuelType
           }]
+        }, {
+          model: models.Station, include: [{
+            model: models.FuelType
+          }]
         }]
     }]
   }).then(function(states) {
@@ -72,7 +76,7 @@ router.get('/', function(req, res, next) {
 
         city.Statistics.forEach(function(statistic) {
           var currentStatistic = {
-            fueltype: statistic.FuelType.name,
+            fuel_type: statistic.FuelType.name,
             consumer_price: {
               cp_avgPrice: statistic.cp_avgPrice,
               cp_stdDeviation: statistic.cp_stdDeviation,
@@ -91,6 +95,23 @@ router.get('/', function(req, res, next) {
           currentCity.statistics.push(currentStatistic);
         });
 
+        city.Stations.forEach(function(station) {
+          var currentStation = {
+            fuel_type: station.FuelType.name,
+            name: station.name,
+            address: station.address,
+            area: station.area,
+            flag: station.flag,
+            sell_price: station.sell_price,
+            buy_price: station.buy_price,
+            sale_mode: station.sale_mode,
+            provider: station.provider,
+            date: station.date
+          }
+
+          currentCity.stations.push(currentStation);
+        });
+
         currentState.cities.push(currentCity);
       });
 
@@ -103,6 +124,11 @@ router.get('/', function(req, res, next) {
 
 // Web Scraper
 router.get('/web-scraper', function(req, res, next) {
+
+  // Repeat for each combination of State and Fuel Type
+  //stateSelection.forEach(function() {
+  //});
+
   var currentState;
   // search for attributes
   models.State.findOne({ where: {name: 'Acre'} }).then(function(state) {
@@ -111,7 +137,7 @@ router.get('/web-scraper', function(req, res, next) {
     } else {
       res.json({status: 'DB:State ' + 'Acre' + ' not found'});
     }
-  })
+  });
 
   var currentFuel;
   // search for attributes
@@ -122,7 +148,7 @@ router.get('/web-scraper', function(req, res, next) {
       //TODO
       res.json({status: 'DB:FuelType ' + 'Gasolina' + ' not found'});
     }
-  })
+  });
 
   var options = {
     method: 'POST',
