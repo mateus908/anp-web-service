@@ -58,8 +58,8 @@ router.get('/', function(req, res, next) {
         name: state.name,
         cities: [],
         dates: {
-          date_from: state.date_from.getDate(), // Wrong date format
-          date_to: state.date_to.getDate()      // Wrong date format
+          date_from: state.date_from,
+          date_to: state.date_to
         }
       };
 
@@ -246,11 +246,11 @@ router.get('/web-scraper', function(req, res, next) {
                   address: '',
                   area: '',
                   flag: '',
-                  sellPrice: 0.0,
-                  buyPrice: 0.0,
-                  saleMode: '',
+                  sell_price: 0.0,
+                  buy_price: 0.0,
+                  sale_mode: '',
                   provider: '',
-                  date: '2016-11-21'
+                  date: ''
                 };
                 var tdElem_station = $(this).children().first();
 
@@ -266,45 +266,36 @@ router.get('/web-scraper', function(req, res, next) {
                 station_price.flag = tdElem_station.text();
                 tdElem_station = tdElem_station.next();
 
-                station_price.sellPrice = parseFloat(tdElem_station.text().replace(',', '.'));
+                station_price.sell_price = parseFloat(tdElem_station.text().replace(',', '.'));
                 tdElem_station = tdElem_station.next();
 
-                station_price.buyPrice = parseFloat(tdElem_station.text().replace(',', '.'));
+                station_price.buy_price = parseFloat(tdElem_station.text().replace(',', '.'));
                 tdElem_station = tdElem_station.next();
 
-                station_price.saleMode = tdElem_station.text();
+                station_price.sale_mode = tdElem_station.text();
                 tdElem_station = tdElem_station.next();
 
                 station_price.provider = tdElem_station.text();
                 tdElem_station = tdElem_station.next();
 
-                //station_price.date = tdElem_station.text();
+                station_price.date = tdElem_station.text();
 
                 models.Station
                 .findOrCreate({where: {
-                  name: station_price.name, city_pk: city.id
+                  name: station_price.address, city_pk: city.id, fuel_type_pk: currentFuel.id
                 }, defaults: {
                   name: station_price.name,
                   address: station_price.address,
                   area: station_price.area,
-                  flag: station_price.flag
+                  flag: station_price.flag,
+                  sell_price: station_price.sell_price,
+                  buy_price: station_price.buy_price,
+                  sale_mode: station_price.sale_mode,
+                  provider: station_price.provider,
+                  date: station_price.date
                 }})
                 .spread(function(station, created) {
                   console.log(created);
-
-                  models.StationPrice
-                  .findOrCreate({where: {
-                    station_pk: station.id, fuel_type_pk: currentFuel.id
-                  }, defaults: {
-                    sellPrice: station_price.sellPrice,
-                    buyPrice: station_price.buyPrice,
-                    saleMode: station_price.saleMode,
-                    provider: station_price.provider,
-                    date: station_price.date
-                  }})
-                  .spread(function(stationPrice, created) {
-                    console.log(created);
-                  });
                 });
               });
             });

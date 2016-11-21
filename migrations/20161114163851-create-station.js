@@ -16,6 +16,14 @@ module.exports = {
         },
         type: Sequelize.INTEGER
       },
+      fuel_type_pk: {
+        allowNull: false,
+        references: {
+          model: 'fuel_types',
+          key: 'id'
+        },
+        type: Sequelize.INTEGER
+      },
       name: {
         type: Sequelize.STRING
       },
@@ -26,6 +34,21 @@ module.exports = {
         type: Sequelize.STRING
       },
       flag: {
+        type: Sequelize.STRING
+      },
+      sell_price: {
+        type: Sequelize.FLOAT
+      },
+      buy_price: {
+        type: Sequelize.FLOAT
+      },
+      sale_mode: {
+        type: Sequelize.STRING
+      },
+      provider: {
+        type: Sequelize.STRING
+      },
+      date: {
         type: Sequelize.STRING
       },
       createdAt: {

@@ -2,8 +2,8 @@
 module.exports = function(sequelize, DataTypes) {
   var State = sequelize.define('State', {
     name: DataTypes.STRING,
-    date_from: DataTypes.DATEONLY,
-    date_to: DataTypes.DATEONLY
+    date_from: DataTypes.STRING,
+    date_to: DataTypes.STRING
   }, {
     classMethods: {
       associate: function(models) {
