@@ -1,4 +1,4 @@
-# anp-web-service
+# ANP Back-End
 Web service that collects data from ANP Website and provides it as an API (http://www.anp.gov.br/preco/prc/Resumo_Por_Estado_Index.asp)
 
 # Installation
